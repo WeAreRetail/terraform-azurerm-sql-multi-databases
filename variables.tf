@@ -44,13 +44,15 @@ variable "resource_group_name" {
 }
 
 variable "server_custom_name" {
-  type    = string
-  default = ""
+  type        = string
+  description = "(Optional) Custom name for the SQL Server"
+  default     = ""
 }
 
 variable "server_custom_tags" {
-  type    = map(string)
-  default = {}
+  type        = map(string)
+  description = "(Optional) Custom tags for the SQL Server"
+  default     = {}
 }
 
 variable "server_description" {
@@ -71,8 +73,9 @@ variable "tags_dr" {
 
 
 variable "custom_location" {
-  type    = string
-  default = ""
+  type        = string
+  description = "(Optional) Custom location for the SQL Server"
+  default     = ""
 }
 
 variable "admin_group" {
@@ -127,26 +130,26 @@ variable "databases" {
     license_type                = optional(string, "BasePrice")
     suffix                      = string
     database_description        = string
-    collation                   = string
-    sku_name                    = string
-    min_capacity                = number
-    zone_redundant              = bool
-    auto_pause_delay_in_minutes = number
-    storage_account_type        = string
+    collation                   = optional(string, "SQL_Latin1_General_CP1_CI_AS")
+    sku_name                    = string # Retrieve the available sku names with az sql db list-editions -l WestEurope -o table
+    min_capacity                = optional(number)
+    zone_redundant              = optional(bool, false)
+    auto_pause_delay_in_minutes = optional(number)
+    storage_account_type        = optional(string, "Geo")
 
     custom_tags = map(string)
 
-    short_term_retention_policy = object({
-      retention_days           = number
-      backup_interval_in_hours = number
-    })
+    short_term_retention_policy = optional(object({
+      retention_days           = optional(number, 1)
+      backup_interval_in_hours = optional(number, 24)
+    }))
 
-    long_term_retention_policy = object({
+    long_term_retention_policy = optional(object({
       weekly_retention  = string
       monthly_retention = string
       yearly_retention  = string
       week_of_year      = string
-    })
+    }))
 
     user_groups = list(string)
     read_groups = list(string)

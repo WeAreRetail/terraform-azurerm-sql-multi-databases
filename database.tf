@@ -1,14 +1,43 @@
 locals {
 
-  databases_map = { for db in var.databases : db.suffix => db }
+  databases_map = { for db in var.databases : db.suffix =>
+    {
+      license_type         = db.license_type == "" ? null : db.license_type
+      suffix               = db.suffix
+      database_description = db.database_description
+      collation            = db.collation
+      sku_name             = db.sku_name
 
-  databases_names_map = { for db in var.databases : db.suffix => azurecaf_name.self_database[db.suffix].result }
+      min_capacity                = can(regex(".*_S_.*", db.sku_name)) ? db.min_capacity : null                # Only for Serverless SKU
+      auto_pause_delay_in_minutes = can(regex(".*_S_.*", db.sku_name)) ? db.auto_pause_delay_in_minutes : null # Only for Serverless SKU
 
-}
+      zone_redundant       = db.zone_redundant
+      storage_account_type = db.storage_account_type
 
-moved {
-  from = azurecaf_name.self_database
-  to   = azurecaf_name.self_database["01"]
+      custom_tags = db.custom_tags
+
+      short_term_retention_policy = db.short_term_retention_policy
+      long_term_retention_policy  = db.long_term_retention_policy
+
+      user_groups = db.user_groups
+      read_groups = db.read_groups
+
+      # Technical SKU properties
+      is_free              = can(regex("Free", db.sku_name))      # Free SKU (Example: "Free")
+      is_standard          = can(regex("^S\\d+$", db.sku_name))   # Standard SKU (Example: "S0")
+      is_premium           = can(regex("^P\\d+$", db.sku_name))   # Premium SKU (Example: "P1")
+      is_data_warehouse    = can(regex("^DW\\d+c$", db.sku_name)) # DataWarehouse SKU (Example: "DW100c")
+      is_stretch           = can(regex("^DS\\d+$", db.sku_name))  # DataWarehouse SKU (Example: "DS100")
+      is_serverless        = can(regex(".*_S_.*", db.sku_name))   # Serverless SKU (Example: "GP_S_Gen5_2")
+      is_hyperscale        = can(regex("^HS_.*", db.sku_name))    # Hyperscale SKU (Example: "HS_Gen5_2")
+      is_general_purpose   = can(regex("^GP_.*", db.sku_name))    # General Purpose SKU (Example: "GP_Gen5_2")
+      is_business_critical = can(regex("^BC_.*", db.sku_name))    # Business Critical SKU (Example: "BC_Gen5_2")
+    }
+  }
+
+  databases_names_map     = { for db in var.databases : db.suffix => azurecaf_name.self_database[db.suffix].result }
+  databases_configuration = { for db in local.databases_map : db.suffix => merge({ name = azurecaf_name.self_database[db.suffix].result }, db) }
+
 }
 
 resource "azurecaf_name" "self_database" {
@@ -24,10 +53,6 @@ resource "azurecaf_name" "self_database" {
   separator     = ""
 }
 
-moved {
-  from = azurerm_mssql_database.self
-  to   = azurerm_mssql_database.self["01"]
-}
 
 resource "azurerm_mssql_database" "self" {
 
@@ -36,7 +61,7 @@ resource "azurerm_mssql_database" "self" {
   name         = azurecaf_name.self_database[each.key].result
   server_id    = azurerm_mssql_server.primary.id
   collation    = each.value.collation
-  license_type = each.value.license_type == "" ? null : each.value.license_type
+  license_type = each.value.license_type
 
   sku_name                    = each.value.sku_name
   min_capacity                = each.value.min_capacity
