@@ -12,7 +12,8 @@ resource "azurecaf_name" "private_dns_zone_group" {
 }
 
 module "private_endpoint" {
-  source = "WeAreRetail/private-endpoint/azurerm"
+  source  = "WeAreRetail/private-endpoint/azurerm"
+  version = "1.0.1"
 
   count = var.private_endpoint ? 1 : 0
 
@@ -44,7 +45,8 @@ resource "azurecaf_name" "private_dns_zone_group_fog" {
 
 
 module "private_endpoint_fog" {
-  source = "WeAreRetail/private-endpoint/azurerm"
+  source  = "WeAreRetail/private-endpoint/azurerm"
+  version = "1.0.1"
 
   count = var.private_endpoint && local.with_failover_group ? 1 : 0
 

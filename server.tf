@@ -62,6 +62,11 @@ resource "azurerm_mssql_server" "primary" {
     azuread_authentication_only = true
   }
 
+  identity {
+    type         = var.identity_type
+    identity_ids = var.identity_type == "SystemAssigned" ? null : var.identity_ids
+  }
+
   tags = local.server_tags_main
 
   lifecycle {

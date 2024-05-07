@@ -52,6 +52,7 @@
 | <a name="requirement_azuread"></a> [azuread](#requirement\_azuread) | ~> 2.0 |
 | <a name="requirement_azurecaf"></a> [azurecaf](#requirement\_azurecaf) | >= 1.2.5 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | >=2.62.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.0.0 |
 | <a name="requirement_sqlsso"></a> [sqlsso](#requirement\_sqlsso) | ~> 1.0 |
 
 #### Inputs
@@ -67,6 +68,8 @@
 | <a name="input_custom_location"></a> [custom\_location](#input\_custom\_location) | (Optional) Custom location for the SQL Server | `string` | `""` | no |
 | <a name="input_databases"></a> [databases](#input\_databases) | List of databases and user groups with access to them. | <pre>list(object({<br>    license_type                = optional(string, "BasePrice")<br>    suffix                      = string<br>    database_description        = string<br>    collation                   = optional(string, "SQL_Latin1_General_CP1_CI_AS")<br>    sku_name                    = string # Retrieve the available sku names with az sql db list-editions -l WestEurope -o table<br>    min_capacity                = optional(number)<br>    zone_redundant              = optional(bool, false)<br>    auto_pause_delay_in_minutes = optional(number)<br>    storage_account_type        = optional(string, "Geo")<br><br>    custom_tags = map(string)<br><br>    short_term_retention_policy = optional(object({<br>      retention_days           = optional(number, 1)<br>      backup_interval_in_hours = optional(number, 24)<br>    }))<br><br>    long_term_retention_policy = optional(object({<br>      weekly_retention  = string<br>      monthly_retention = string<br>      yearly_retention  = string<br>      week_of_year      = string<br>    }))<br><br>    user_groups = list(string)<br>    read_groups = list(string)<br>  }))</pre> | `[]` | no |
 | <a name="input_dns_zone_group_name_use_caf"></a> [dns\_zone\_group\_name\_use\_caf](#input\_dns\_zone\_group\_name\_use\_caf) | (optional) Use azurecaf\_name for Private DNS Zone Group name | `bool` | `false` | no |
+| <a name="input_identity_ids"></a> [identity\_ids](#input\_identity\_ids) | The identity ids for the SQL Server | `list(string)` | `null` | no |
+| <a name="input_identity_type"></a> [identity\_type](#input\_identity\_type) | The identity type for the SQL Server | `string` | `null` | no |
 | <a name="input_instance_index"></a> [instance\_index](#input\_instance\_index) | Instance number | `number` | `1` | no |
 | <a name="input_private_dns_zone_ids"></a> [private\_dns\_zone\_ids](#input\_private\_dns\_zone\_ids) | (Optional) The private DNS zone for the Private Endpoints (privatelink.database.windows.net). | `list(string)` | `[]` | no |
 | <a name="input_private_endpoint"></a> [private\_endpoint](#input\_private\_endpoint) | (Optional) Should the server be accessible via Private Endpoint | `bool` | `false` | no |

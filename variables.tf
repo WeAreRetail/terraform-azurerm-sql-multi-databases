@@ -82,6 +82,24 @@ variable "admin_group" {
   type = string
 }
 
+variable "identity_type" {
+  type        = string
+  description = "The identity type for the SQL Server"
+  default     = null
+
+  validation {
+    condition     = var.identity_type == null || contains(["SystemAssigned", "UserAssigned"], var.identity_type)
+    error_message = "The identity type is invalid. It must be 'SystemAssigned', 'UserAssigned'."
+  }
+
+}
+
+variable "identity_ids" {
+  type        = list(string)
+  description = "The identity ids for the SQL Server"
+  default     = null
+}
+
 variable "sql_server_firewall_rules" {
   type        = map(object({ name = string, start = string, end = string }))
   description = "Firewall rules to apply on SQL Server"
