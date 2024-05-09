@@ -70,8 +70,8 @@ variable "identity_type" {
   default     = null
 
   validation {
-    condition     = var.identity_type == null || contains(["SystemAssigned", "UserAssigned"], var.identity_type)
-    error_message = "The identity type is invalid. It must be 'SystemAssigned', 'UserAssigned'."
+    condition     = var.identity_type == null || contains(["SystemAssigned, UserAssigned", "SystemAssigned", "UserAssigned"], coalesce(var.identity_type, "empty"))
+    error_message = "The identity type is invalid. It must be 'null', 'SystemAssigned, UserAssigned', 'SystemAssigned', 'UserAssigned'."
   }
 }
 
