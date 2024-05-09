@@ -1,147 +1,23 @@
-variable "caf_prefixes_main" {
-  type        = list(string)
-  description = "Principal naming prefixes"
+variable "admin_group" {
+  type        = string
+  description = "The name of the Azure AD group that will be the SQL Server admin."
 }
 
 variable "caf_prefixes_dr" {
   type        = list(string)
-  description = "Disaster recovery naming prefixes"
+  description = "Disaster recovery naming prefixes."
 }
 
-variable "instance_index" {
-  type        = number
-  description = "Instance number"
-  default     = 1
-}
-
-variable "private_dns_zone_ids" {
+variable "caf_prefixes_main" {
   type        = list(string)
-  description = "(Optional) The private DNS zone for the Private Endpoints (privatelink.database.windows.net)."
-  default     = []
+  description = "Principal naming prefixes."
 }
-
-variable "private_endpoint" {
-  type        = bool
-  description = "(Optional) Should the server be accessible via Private Endpoint"
-  default     = false
-}
-
-variable "private_endpoint_subnet_fog_id" {
-  type        = string
-  description = "(Optional) The Private Endpoint subnet ID for failover group"
-  default     = null
-}
-
-variable "private_endpoint_subnet_id" {
-  type        = string
-  description = "(Optional) The Private Endpoint subnet ID"
-  default     = null
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = "Resource group name."
-}
-
-variable "server_custom_name" {
-  type        = string
-  description = "(Optional) Custom name for the SQL Server"
-  default     = ""
-}
-
-variable "server_custom_tags" {
-  type        = map(string)
-  description = "(Optional) Custom tags for the SQL Server"
-  default     = {}
-}
-
-variable "server_description" {
-  type        = string
-  default     = ""
-  description = "SQL Server description."
-}
-
-variable "tags_main" {
-  type        = map(string)
-  description = "Tags for main server"
-}
-
-variable "tags_dr" {
-  type        = map(string)
-  description = "Tags for DR server"
-}
-
 
 variable "custom_location" {
   type        = string
-  description = "(Optional) Custom location for the SQL Server"
+  description = "(Optional) Custom location for the SQL Server."
   default     = ""
 }
-
-variable "admin_group" {
-  type = string
-}
-
-variable "identity_type" {
-  type        = string
-  description = "The identity type for the SQL Server"
-  default     = null
-
-  validation {
-    condition     = var.identity_type == null || contains(["SystemAssigned", "UserAssigned"], var.identity_type)
-    error_message = "The identity type is invalid. It must be 'SystemAssigned', 'UserAssigned'."
-  }
-
-}
-
-variable "identity_ids" {
-  type        = list(string)
-  description = "The identity ids for the SQL Server"
-  default     = null
-}
-
-variable "sql_server_firewall_rules" {
-  type        = map(object({ name = string, start = string, end = string }))
-  description = "Firewall rules to apply on SQL Server"
-  default     = {}
-}
-
-variable "sql_server_virtual_network_rules_main" {
-  type        = list(string)
-  description = "Virtual network rules to apply on SQL Main Server"
-  default     = []
-}
-
-variable "sql_server_virtual_network_rules_dr" {
-  type        = list(string)
-  description = "Virtual network rules to apply on SQL DR Server"
-  default     = []
-}
-
-variable "sql_failover_group_policy" {
-
-  type        = object({ location = string, mode = string, grace_minutes = number })
-  description = <<EOT
-  Microsoft Azure SQL Failover Group policy. If not defined, no Failover Group will be created.
-
-  location - SQL Server DR Location
-  mode - specifies the failover mode : 'Manual' or 'Automatic'
-  grace_minutes - specifies the grace time in minutes before failover happened on 'Automatic' mode (should be 0 on 'Manual')
-
-  EOT
-  default     = null
-
-  #validation {
-  #  condition     = var.sql_failover_group_policy == null || (var.sql_failover_group_policy == null ? "" : var.sql_failover_group_policy.mode) == "Manual" || (var.sql_failover_group_policy == null ? 0 : var.sql_failover_group_policy.grace_minutes) >= 60
-  #  error_message = "The SQL failover group policy is invalid. If 'mode' is 'Automatic', 'grace_minutes' must be defined and equal or greater than 60."
-  #}
-}
-
-
-
-####
-# Modularized Databases
-####
 
 variable "databases" {
   type = list(object({
@@ -172,12 +48,142 @@ variable "databases" {
     user_groups = list(string)
     read_groups = list(string)
   }))
-  description = "List of databases and user groups with access to them."
+  description = "(Optional) List of databases and user groups with access to them."
   default     = []
+}
+
+variable "identity_ids" {
+  type        = list(string)
+  description = "(Optional) The identity ids for the SQL Server."
+  default     = null
+}
+
+variable "identity_project_tags" {
+  type        = map(string)
+  description = "(Optional) The required tags for the user assigned identity."
+  default     = {}
+}
+
+variable "identity_type" {
+  type        = string
+  description = "(Optional) The identity type for the SQL Server."
+  default     = null
+
+  validation {
+    condition     = var.identity_type == null || contains(["SystemAssigned", "UserAssigned"], var.identity_type)
+    error_message = "The identity type is invalid. It must be 'SystemAssigned', 'UserAssigned'."
+  }
+}
+
+variable "identity_use_project_msi" {
+  type        = bool
+  description = "(Optional) Whether to use the project identity or not."
+  default     = false
+}
+
+variable "instance_index" {
+  type        = number
+  description = "(Optional) Instance number."
+  default     = 1
+}
+
+variable "private_dns_zone_ids" {
+  type        = list(string)
+  description = "(Optional) The private DNS zone for the Private Endpoints (privatelink.database.windows.net)."
+  default     = []
+}
+
+variable "private_endpoint_subnet_fog_id" {
+  type        = string
+  description = "(Optional) The Private Endpoint subnet ID for failover group."
+  default     = null
+}
+
+variable "private_endpoint_subnet_id" {
+  type        = string
+  description = "(Optional) The Private Endpoint subnet ID."
+  default     = null
+}
+
+variable "private_endpoint" {
+  type        = bool
+  description = "(Optional) Should the server be accessible via Private Endpoint."
+  default     = false
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "Resource group name."
+}
+
+variable "server_custom_name" {
+  type        = string
+  description = "(Optional) Custom name for the SQL Server."
+  default     = ""
+}
+
+variable "server_custom_tags" {
+  type        = map(string)
+  description = "(Optional) Custom tags for the SQL Server."
+  default     = {}
+}
+
+variable "server_description" {
+  type        = string
+  default     = ""
+  description = "(Optional) SQL Server description."
+}
+
+variable "sql_failover_group_policy" {
+
+  type        = object({ location = string, mode = string, grace_minutes = number })
+  description = <<EOT
+  (Optional) Microsoft Azure SQL Failover Group policy. If not defined, no Failover Group will be created.
+
+  location - SQL Server DR Location
+  mode - specifies the failover mode : 'Manual' or 'Automatic'
+  grace_minutes - specifies the grace time in minutes before failover happened on 'Automatic' mode (should be 0 on 'Manual')
+
+  EOT
+  default     = null
+
+  #validation {
+  #  condition     = var.sql_failover_group_policy == null || (var.sql_failover_group_policy == null ? "" : var.sql_failover_group_policy.mode) == "Manual" || (var.sql_failover_group_policy == null ? 0 : var.sql_failover_group_policy.grace_minutes) >= 60
+  #  error_message = "The SQL failover group policy is invalid. If 'mode' is 'Automatic', 'grace_minutes' must be defined and equal or greater than 60."
+  #}
 }
 
 variable "dns_zone_group_name_use_caf" {
   type        = bool
-  description = "(optional) Use azurecaf_name for Private DNS Zone Group name"
+  description = "(Optional) Use azurecaf_name for Private DNS Zone Group name."
   default     = false
+}
+
+variable "sql_server_firewall_rules" {
+  type        = map(object({ name = string, start = string, end = string }))
+  description = "(Optional) Firewall rules to apply on SQL Server."
+  default     = {}
+}
+
+variable "sql_server_virtual_network_rules_dr" {
+  type        = list(string)
+  description = "(Optional) Virtual network rules to apply on SQL DR Server."
+  default     = []
+}
+
+variable "sql_server_virtual_network_rules_main" {
+  type        = list(string)
+  description = "(Optional) Virtual network rules to apply on SQL Main Server."
+  default     = []
+}
+
+variable "tags_dr" {
+  type        = map(string)
+  description = "Tags for DR server."
+}
+
+
+variable "tags_main" {
+  type        = map(string)
+  description = "Tags for main server."
 }

@@ -45,6 +45,11 @@ resource "azurecaf_name" "virtual_network_rule_primary" {
   separator     = ""
 }
 
+locals {
+  computed_identity_type = var.identity_use_project_msi ? "UserAssigned" : var.identity_type
+  computed_identity_ids  = var.identity_use_project_msi ? [data.azurerm_user_assigned_identity.user_identity[0].id] : var.identity_ids
+}
+
 resource "azurerm_mssql_server" "primary" {
   name                          = local.primary_server_name
   resource_group_name           = var.resource_group_name
@@ -63,9 +68,11 @@ resource "azurerm_mssql_server" "primary" {
   }
 
   identity {
-    type         = var.identity_type
-    identity_ids = var.identity_type == "SystemAssigned" ? null : var.identity_ids
+    type         = local.computed_identity_type
+    identity_ids = local.computed_identity_type == "SystemAssigned" ? null : local.computed_identity_ids
   }
+
+  primary_user_assigned_identity_id = local.computed_identity_type == "SystemAssigned" ? null : local.computed_identity_ids[0]
 
   tags = local.server_tags_main
 
@@ -74,6 +81,17 @@ resource "azurerm_mssql_server" "primary" {
       administrator_login,
       administrator_login_password, #Ignore change as it cannot be modified when "azuread_authentication_only = true" 
     ]
+
+    precondition {
+      condition = (
+        (var.identity_use_project_msi && var.identity_type == null && var.identity_ids == null)
+        ||
+        (!var.identity_use_project_msi && var.identity_type == "SystemAssigned" && var.identity_ids == null)
+        ||
+        (!var.identity_use_project_msi && var.identity_type == "UserAssigned" && var.identity_ids != null)
+      )
+      error_message = "Invalid identity configuration. Use either 'identity_use_project_msi' or 'identity_type' and 'identity_ids' but not both. Do not use identity_ids with SystemAssigned"
+    }
   }
 }
 
