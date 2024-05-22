@@ -16,7 +16,7 @@ terraform {
     }
     sqlsso = {
       source  = "jason-johnson/sqlsso"
-      version = "~> 1.0"
+      version = "1.0.2"
     }
     random = {
       source  = "hashicorp/random"

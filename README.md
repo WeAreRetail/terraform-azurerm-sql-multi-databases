@@ -53,7 +53,7 @@
 | <a name="requirement_azurecaf"></a> [azurecaf](#requirement\_azurecaf) | >= 1.2.5 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | >=2.62.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.0.0 |
-| <a name="requirement_sqlsso"></a> [sqlsso](#requirement\_sqlsso) | ~> 1.0 |
+| <a name="requirement_sqlsso"></a> [sqlsso](#requirement\_sqlsso) | 1.0.2 |
 
 #### Inputs
 
