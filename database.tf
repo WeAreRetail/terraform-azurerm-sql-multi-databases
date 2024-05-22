@@ -35,8 +35,16 @@ locals {
     }
   }
 
-  databases_names_map     = { for db in var.databases : db.suffix => azurecaf_name.self_database[db.suffix].result }
-  databases_configuration = { for db in local.databases_map : db.suffix => merge({ name = azurecaf_name.self_database[db.suffix].result }, db) }
+  databases_names_map = { for db in var.databases : db.suffix => azurecaf_name.self_database[db.suffix].result }
+  databases_configuration = { for db in local.databases_map : db.suffix => merge(
+    {
+      name = azurecaf_name.self_database[db.suffix].result
+      id   = azurerm_mssql_database.self[db.suffix].id
+
+    },
+    db
+    )
+  }
 
 }
 
@@ -65,6 +73,7 @@ resource "azurerm_mssql_database" "self" {
 
   sku_name                    = each.value.sku_name
   min_capacity                = each.value.min_capacity
+  max_size_gb                 = each.value.max_size_gb
   zone_redundant              = each.value.zone_redundant
   auto_pause_delay_in_minutes = each.value.auto_pause_delay_in_minutes
   storage_account_type        = each.value.storage_account_type

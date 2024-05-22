@@ -27,6 +27,7 @@ variable "databases" {
     collation                   = optional(string, "SQL_Latin1_General_CP1_CI_AS")
     sku_name                    = string # Retrieve the available sku names with az sql db list-editions -l WestEurope -o table
     min_capacity                = optional(number)
+    max_size_gb                 = optional(number)
     zone_redundant              = optional(bool, false)
     auto_pause_delay_in_minutes = optional(number)
     storage_account_type        = optional(string, "Geo")
