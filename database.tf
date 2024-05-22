@@ -7,6 +7,7 @@ locals {
       database_description = db.database_description
       collation            = db.collation
       sku_name             = db.sku_name
+      max_size_gb          = db.max_size_gb
 
       min_capacity                = can(regex(".*_S_.*", db.sku_name)) ? db.min_capacity : null                # Only for Serverless SKU
       auto_pause_delay_in_minutes = can(regex(".*_S_.*", db.sku_name)) ? db.auto_pause_delay_in_minutes : null # Only for Serverless SKU
