@@ -1,4 +1,16 @@
 locals {
+  # ISO-8601 notation for 0 second.
+  zero_second = "PT0S"
+  default_short_term_retention_policy = {
+    backup_interval_in_hours  = 24
+    retention_days            = 1
+  }
+  default_long_term_retention_policy = {
+    monthly_retention   = local.zero_second
+    week_of_year        = 1
+    weekly_retention    = local.zero_second
+    yearly_retention    = local.zero_second
+  }
 
   databases_map = { for db in var.databases : db.suffix =>
     {
@@ -17,8 +29,11 @@ locals {
 
       custom_tags = db.custom_tags
 
-      short_term_retention_policy = db.short_term_retention_policy
-      long_term_retention_policy  = db.long_term_retention_policy
+      # If no value is passed to PITR and LRS, Terraform does not update the value on Azure.
+      # As a result, assigning a null value to PITR and LRS leaves the configuration as it is, which is not what we want.
+      # We overcome this behavior by forcing the values to the minimum when PITR and LRS are not provided.
+      long_term_retention_policy  = db.long_term_retention_policy == null ? local.default_long_term_retention_policy : db.long_term_retention_policy
+      short_term_retention_policy = db.short_term_retention_policy == null ? local.default_short_term_retention_policy : db.short_term_retention_policy
 
       user_groups = db.user_groups
       read_groups = db.read_groups
@@ -79,25 +94,16 @@ resource "azurerm_mssql_database" "self" {
   auto_pause_delay_in_minutes = each.value.auto_pause_delay_in_minutes
   storage_account_type        = each.value.storage_account_type
 
-
-  dynamic "short_term_retention_policy" {
-    for_each = each.value.short_term_retention_policy == null ? [] : [each.value.short_term_retention_policy]
-
-    content {
-      retention_days           = each.value.short_term_retention_policy.retention_days
-      backup_interval_in_hours = each.value.short_term_retention_policy.backup_interval_in_hours
-    }
+  long_term_retention_policy {
+    weekly_retention  = each.value.long_term_retention_policy.weekly_retention
+    monthly_retention = each.value.long_term_retention_policy.monthly_retention
+    yearly_retention  = each.value.long_term_retention_policy.yearly_retention
+    week_of_year      = each.value.long_term_retention_policy.week_of_year
   }
 
-  dynamic "long_term_retention_policy" {
-    for_each = each.value.long_term_retention_policy == null ? [] : [each.value.long_term_retention_policy]
-
-    content {
-      weekly_retention  = each.value.long_term_retention_policy.weekly_retention
-      monthly_retention = each.value.long_term_retention_policy.monthly_retention
-      yearly_retention  = each.value.long_term_retention_policy.yearly_retention
-      week_of_year      = each.value.long_term_retention_policy.week_of_year
-    }
+  short_term_retention_policy {
+    retention_days           = each.value.short_term_retention_policy.retention_days
+    backup_interval_in_hours = each.value.short_term_retention_policy.backup_interval_in_hours
   }
 
   tags = {

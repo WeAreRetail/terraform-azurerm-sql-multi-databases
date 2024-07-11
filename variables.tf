@@ -35,15 +35,15 @@ variable "databases" {
     custom_tags = map(string)
 
     short_term_retention_policy = optional(object({
-      retention_days           = optional(number, 1)
-      backup_interval_in_hours = optional(number, 24)
+      backup_interval_in_hours = number
+      retention_days           = number
     }))
 
     long_term_retention_policy = optional(object({
-      weekly_retention  = string
       monthly_retention = string
-      yearly_retention  = string
       week_of_year      = string
+      weekly_retention  = string
+      yearly_retention  = string
     }))
 
     user_groups = list(string)
