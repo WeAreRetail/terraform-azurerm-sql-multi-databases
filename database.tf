@@ -2,14 +2,15 @@ locals {
   # ISO-8601 notation for 0 second.
   zero_second = "PT0S"
   default_short_term_retention_policy = {
-    backup_interval_in_hours  = 24
-    retention_days            = 1
+    backup_interval_in_hours = 24
+    retention_days           = 1
   }
+
   default_long_term_retention_policy = {
-    monthly_retention   = local.zero_second
-    week_of_year        = 1
-    weekly_retention    = local.zero_second
-    yearly_retention    = local.zero_second
+    monthly_retention = local.zero_second
+    week_of_year      = 1
+    weekly_retention  = local.zero_second
+    yearly_retention  = local.zero_second
   }
 
   databases_map = { for db in var.databases : db.suffix =>
@@ -101,9 +102,23 @@ resource "azurerm_mssql_database" "self" {
     week_of_year      = each.value.long_term_retention_policy.week_of_year
   }
 
-  short_term_retention_policy {
-    retention_days           = each.value.short_term_retention_policy.retention_days
-    backup_interval_in_hours = each.value.short_term_retention_policy.backup_interval_in_hours
+  # For Hyperscale SKU, the `backup_interval_in_hours` is not supported.
+  # See https://github.com/hashicorp/terraform-provider-azurerm/issues/27716
+  dynamic "short_term_retention_policy" {
+    for_each = each.value.is_hyperscale ? ["hyperscale"] : []
+
+    content {
+      retention_days = each.value.short_term_retention_policy.retention_days
+    }
+  }
+
+  dynamic "short_term_retention_policy" {
+    for_each = each.value.is_hyperscale ? [] : ["not_hyperscale"]
+
+    content {
+      retention_days           = each.value.short_term_retention_policy.retention_days
+      backup_interval_in_hours = each.value.short_term_retention_policy.backup_interval_in_hours
+    }
   }
 
   tags = {

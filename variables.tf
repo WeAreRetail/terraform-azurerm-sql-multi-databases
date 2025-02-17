@@ -35,7 +35,7 @@ variable "databases" {
     custom_tags = map(string)
 
     short_term_retention_policy = optional(object({
-      backup_interval_in_hours = number
+      backup_interval_in_hours = optional(number)
       retention_days           = number
     }))
 

@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-02-17
+
+### Breaking Changes
+
+- Bump the minimum AzureRM provider to 4.6.0. (Hyperscale issue with PITR: [#27656](https://github.com/hashicorp/terraform-provider-azurerm/pull/27656))
+- Bump the minimum Terraform version to 1.0.0.
+
+### Improvement
+
+- Do not set the `backup_interval_in_hours` for Hyperscale SKUs to prevent flaky plans.
+
 ## [1.5.0] - 2024-07-10
 
 ### Improvement
