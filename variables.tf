@@ -112,6 +112,11 @@ variable "private_endpoint" {
   default     = false
 }
 
+variable "read_replica_count" {
+  description = "Number of high availability secondary replicas for Hyperscale SKUs. Set to 0 to disable."
+  type        = number
+  default     = 0
+}
 variable "resource_group_name" {
   type        = string
   description = "Resource group name."
@@ -188,3 +193,5 @@ variable "tags_main" {
   type        = map(string)
   description = "Tags for main server."
 }
+
+

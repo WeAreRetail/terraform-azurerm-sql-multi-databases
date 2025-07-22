@@ -77,6 +77,7 @@
 | <a name="input_private_endpoint"></a> [private\_endpoint](#input\_private\_endpoint) | (Optional) Should the server be accessible via Private Endpoint. | `bool` | `false` | no |
 | <a name="input_private_endpoint_subnet_fog_id"></a> [private\_endpoint\_subnet\_fog\_id](#input\_private\_endpoint\_subnet\_fog\_id) | (Optional) The Private Endpoint subnet ID for failover group. | `string` | `null` | no |
 | <a name="input_private_endpoint_subnet_id"></a> [private\_endpoint\_subnet\_id](#input\_private\_endpoint\_subnet\_id) | (Optional) The Private Endpoint subnet ID. | `string` | `null` | no |
+| <a name="input_read_replica_count"></a> [read\_replica\_count](#input\_read\_replica\_count) | Number of high availability secondary replicas for Hyperscale SKUs. Set to 0 to disable. | `number` | `0` | no |
 | <a name="input_server_custom_name"></a> [server\_custom\_name](#input\_server\_custom\_name) | (Optional) Custom name for the SQL Server. | `string` | `""` | no |
 | <a name="input_server_custom_tags"></a> [server\_custom\_tags](#input\_server\_custom\_tags) | (Optional) Custom tags for the SQL Server. | `map(string)` | `{}` | no |
 | <a name="input_server_description"></a> [server\_description](#input\_server\_description) | (Optional) SQL Server description. | `string` | `""` | no |

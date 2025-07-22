@@ -95,6 +95,8 @@ resource "azurerm_mssql_database" "self" {
   auto_pause_delay_in_minutes = each.value.auto_pause_delay_in_minutes
   storage_account_type        = each.value.storage_account_type
 
+  read_replica_count = each.value.is_hyperscale ? var.read_replica_count : null
+
   long_term_retention_policy {
     weekly_retention  = each.value.long_term_retention_policy.weekly_retention
     monthly_retention = each.value.long_term_retention_policy.monthly_retention
