@@ -64,7 +64,7 @@ resource "azurerm_mssql_server" "primary" {
   azuread_administrator {
     login_username              = var.admin_group
     object_id                   = data.azuread_group.admins.object_id
-    azuread_authentication_only = true
+    azuread_authentication_only = var.azuread_authentication_only
   }
 
   identity {
@@ -139,7 +139,7 @@ resource "azurerm_mssql_server" "secondary" {
   azuread_administrator {
     login_username              = var.admin_group
     object_id                   = data.azuread_group.admins.object_id
-    azuread_authentication_only = true
+    azuread_authentication_only = var.azuread_authentication_only
   }
 
   tags = local.server_tags_dr
