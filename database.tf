@@ -28,6 +28,10 @@ locals {
       zone_redundant       = db.zone_redundant
       storage_account_type = db.storage_account_type
 
+      named_replica                    = db.named_replica
+      named_replica_read_replica_count = db.named_replica_read_replica_count
+      named_replica_sku                = db.named_replica_sku != null ? db.named_replica_sku : db.sku_name
+
       custom_tags = db.custom_tags
 
       # If no value is passed to PITR and LRS, Terraform does not update the value on Azure.
@@ -64,10 +68,12 @@ locals {
   }
 
   hyperscale_named_replicas_map = merge([
-    for db_suffix, db in local.databases_map : db.is_hyperscale && var.named_replica ? {
-      for replica_index in range(1) : "${db_suffix}-named-1" => {
-        database_suffix = db_suffix
-        replica_index   = 1
+    for db_suffix, db in local.databases_map : db.is_hyperscale && db.named_replica ? {
+      "${azurecaf_name.self_database[db_suffix].result}nr01" = {
+        database_id                      = azurerm_mssql_database.self[db_suffix].id
+        named_replica_sku                = db.named_replica_sku
+        named_replica_read_replica_count = db.named_replica_read_replica_count
+        db_usage                         = contains(keys(db.custom_tags), "DB_USAGE") ? "${db.custom_tags["DB_USAGE"]}_NAME_REPLICA" : "NAME_REPLICA"
       }
     } : {}
   ]...)
@@ -140,35 +146,23 @@ resource "azurerm_mssql_database" "self" {
   }
 }
 
-resource "azurecaf_name" "self_database_named_replica" {
-
-  for_each = local.hyperscale_named_replicas_map
-
-  name          = "${azurecaf_name.self_database[each.value.database_suffix].result}nr${format("%02d", each.value.replica_index)}"
-  resource_type = "azurerm_mssql_database"
-  prefixes      = []
-  suffixes      = []
-  use_slug      = true
-  clean_input   = true
-  separator     = ""
-}
-
 resource "azurerm_mssql_database" "named_replica" {
 
   for_each = local.hyperscale_named_replicas_map
 
-  name                         = azurecaf_name.self_database_named_replica[each.key].result
+  name                         = each.key
   server_id                    = azurerm_mssql_server.primary.id
   create_mode                  = "Secondary"
-  creation_source_database_id  = azurerm_mssql_database.self[each.value.database_suffix].id
-  read_replica_count           = var.named_replica_read_replica_count
+  creation_source_database_id  = each.value.database_id
+  sku_name                     = each.value.named_replica_sku
+  read_replica_count           = each.value.named_replica_read_replica_count
 
   # In this provider, Hyperscale named replicas are created with create_mode = "Secondary".
   tags = {
     for n, v in merge(
       local.tags_main,
-      { "description" = "Named replica of ${azurecaf_name.self_database[each.value.database_suffix].result}" },
-      contains(keys(local.databases_map[each.value.database_suffix].custom_tags), "DB_USAGE") ? { "DB_USAGE" = "${local.databases_map[each.value.database_suffix].custom_tags["DB_USAGE"]}_NAME_REPLICA" } : { "DB_USAGE" = "NAME_REPLICA" }
+      { "description" = "Named replica of ${each.key}" },
+      { "DB_USAGE" = each.value.db_usage }
     ) : n => v if v != ""
   }
 
