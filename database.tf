@@ -63,6 +63,15 @@ locals {
     )
   }
 
+  hyperscale_named_replicas_map = merge([
+    for db_suffix, db in local.databases_map : db.is_hyperscale && var.named_replica ? {
+      for replica_index in range(1) : "${db_suffix}-named-1" => {
+        database_suffix = db_suffix
+        replica_index   = 1
+      }
+    } : {}
+  ]...)
+
 }
 
 resource "azurecaf_name" "self_database" {
@@ -89,13 +98,12 @@ resource "azurerm_mssql_database" "self" {
   license_type = each.value.license_type
 
   sku_name                    = each.value.sku_name
+  read_replica_count          = each.value.is_hyperscale ? var.read_replica_count : null
   min_capacity                = each.value.min_capacity
   max_size_gb                 = each.value.max_size_gb
   zone_redundant              = each.value.zone_redundant
   auto_pause_delay_in_minutes = each.value.auto_pause_delay_in_minutes
   storage_account_type        = each.value.storage_account_type
-
-  read_replica_count = each.value.is_hyperscale ? var.read_replica_count : null
 
   long_term_retention_policy {
     weekly_retention  = each.value.long_term_retention_policy.weekly_retention
@@ -125,6 +133,43 @@ resource "azurerm_mssql_database" "self" {
 
   tags = {
     for n, v in merge(local.tags_main, { "description" = each.value.database_description }, each.value.custom_tags) : n => v if v != ""
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurecaf_name" "self_database_named_replica" {
+
+  for_each = local.hyperscale_named_replicas_map
+
+  name          = "${azurecaf_name.self_database[each.value.database_suffix].result}nr${format("%02d", each.value.replica_index)}"
+  resource_type = "azurerm_mssql_database"
+  prefixes      = []
+  suffixes      = []
+  use_slug      = true
+  clean_input   = true
+  separator     = ""
+}
+
+resource "azurerm_mssql_database" "named_replica" {
+
+  for_each = local.hyperscale_named_replicas_map
+
+  name                         = azurecaf_name.self_database_named_replica[each.key].result
+  server_id                    = azurerm_mssql_server.primary.id
+  create_mode                  = "Secondary"
+  creation_source_database_id  = azurerm_mssql_database.self[each.value.database_suffix].id
+  read_replica_count           = var.named_replica_read_replica_count
+
+  # In this provider, Hyperscale named replicas are created with create_mode = "Secondary".
+  tags = {
+    for n, v in merge(
+      local.tags_main,
+      { "description" = "Named replica of ${azurecaf_name.self_database[each.value.database_suffix].result}" },
+      contains(keys(local.databases_map[each.value.database_suffix].custom_tags), "DB_USAGE") ? { "DB_USAGE" = "${local.databases_map[each.value.database_suffix].custom_tags["DB_USAGE"]}_NAME_REPLICA" } : { "DB_USAGE" = "NAME_REPLICA" }
+    ) : n => v if v != ""
   }
 
   lifecycle {

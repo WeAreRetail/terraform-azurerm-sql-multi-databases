@@ -31,6 +31,8 @@
 | <a name="input_identity_type"></a> [identity\_type](#input\_identity\_type) | (Optional) The identity type for the SQL Server. | `string` | `null` | no |
 | <a name="input_identity_use_project_msi"></a> [identity\_use\_project\_msi](#input\_identity\_use\_project\_msi) | (Optional) Whether to use the project identity or not. | `bool` | `false` | no |
 | <a name="input_instance_index"></a> [instance\_index](#input\_instance\_index) | (Optional) Instance number. | `number` | `1` | no |
+| <a name="input_named_replica"></a> [named\_replica](#input\_named\_replica) | Whether to create a Hyperscale named replica per Hyperscale database. | `bool` | `false` | no |
+| <a name="input_named_replica_read_replica_count"></a> [named\_replica\_read\_replica\_count](#input\_named\_replica\_read\_replica\_count) | Number of high availability secondary replicas for Hyperscale named replicas. Set to 0 to disable. | `number` | `0` | no |
 | <a name="input_private_dns_zone_ids"></a> [private\_dns\_zone\_ids](#input\_private\_dns\_zone\_ids) | (Optional) The private DNS zone for the Private Endpoints (privatelink.database.windows.net). | `list(string)` | `[]` | no |
 | <a name="input_private_endpoint"></a> [private\_endpoint](#input\_private\_endpoint) | (Optional) Should the server be accessible via Private Endpoint. | `bool` | `false` | no |
 | <a name="input_private_endpoint_subnet_fog_id"></a> [private\_endpoint\_subnet\_fog\_id](#input\_private\_endpoint\_subnet\_fog\_id) | (Optional) The Private Endpoint subnet ID for failover group. | `string` | `null` | no |
@@ -50,6 +52,10 @@
 |------|-------------|
 | <a name="output_database_names"></a> [database\_names](#output\_database\_names) | A map where the key is the database suffix and the value is the database name. |
 | <a name="output_databases_configuration"></a> [databases\_configuration](#output\_databases\_configuration) | A map where the key is the database suffix and the value is the database configuration and additional computed values. |
+| <a name="output_named_replica_database_name"></a> [named\_replica\_database\_name](#output\_named\_replica\_database\_name) | A map where the key is the named replica key and the value is the database name. |
+| <a name="output_named_replica_server_fqdn"></a> [named\_replica\_server\_fqdn](#output\_named\_replica\_server\_fqdn) | A map where the key is the named replica key and the value is the server FQDN. |
+| <a name="output_named_replica_server_id"></a> [named\_replica\_server\_id](#output\_named\_replica\_server\_id) | A map where the key is the named replica key and the value is the server ID. |
+| <a name="output_named_replica_server_name"></a> [named\_replica\_server\_name](#output\_named\_replica\_server\_name) | A map where the key is the named replica key and the value is the server name. |
 | <a name="output_primary_server_fqdn"></a> [primary\_server\_fqdn](#output\_primary\_server\_fqdn) | The FQDN of the primary SQL Server. |
 | <a name="output_primary_server_id"></a> [primary\_server\_id](#output\_primary\_server\_id) | The ID of the primary SQL Server. |
 | <a name="output_primary_server_name"></a> [primary\_server\_name](#output\_primary\_server\_name) | The name of the primary SQL Server. |

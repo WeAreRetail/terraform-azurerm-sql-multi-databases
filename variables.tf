@@ -155,6 +155,18 @@ variable "read_replica_count" {
   default     = 0
 }
 
+variable "named_replica" {
+  description = "Whether to create a Hyperscale named replica per Hyperscale database."
+  type        = bool
+  default     = false
+}
+
+variable "named_replica_read_replica_count" {
+  description = "Number of high availability secondary replicas for Hyperscale named replicas. Set to 0 to disable."
+  type        = number
+  default     = 0
+}
+
 // Firewall and VNet rules
 variable "sql_server_firewall_rules" {
   type        = map(object({ name = string, start = string, end = string }))
