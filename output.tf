@@ -40,20 +40,32 @@ output "databases_configuration" {
 
 output "named_replica_server_id" {
   description = "A map where the key is the named replica key and the value is the server ID."
-  value       = { for k, v in azurerm_mssql_database.named_replica : k => azurerm_mssql_server.primary.id }
+  value = merge(
+    { for k, v in azurerm_mssql_database.named_replica : k => azurerm_mssql_server.primary.id },
+    { for k, v in azurerm_mssql_database.named_replica_unmanaged : k => azurerm_mssql_server.primary.id }
+  )
 }
 
 output "named_replica_server_name" {
   description = "A map where the key is the named replica key and the value is the server name."
-  value       = { for k, v in azurerm_mssql_database.named_replica : k => local.primary_server_name }
+  value = merge(
+    { for k, v in azurerm_mssql_database.named_replica : k => local.primary_server_name },
+    { for k, v in azurerm_mssql_database.named_replica_unmanaged : k => local.primary_server_name }
+  )
 }
 
 output "named_replica_server_fqdn" {
   description = "A map where the key is the named replica key and the value is the server FQDN."
-  value       = { for k, v in azurerm_mssql_database.named_replica : k => azurerm_mssql_server.primary.fully_qualified_domain_name }
+  value = merge(
+    { for k, v in azurerm_mssql_database.named_replica : k => azurerm_mssql_server.primary.fully_qualified_domain_name },
+    { for k, v in azurerm_mssql_database.named_replica_unmanaged : k => azurerm_mssql_server.primary.fully_qualified_domain_name }
+  )
 }
 
 output "named_replica_database_name" {
   description = "A map where the key is the named replica key and the value is the database name."
-  value       = { for k, v in azurerm_mssql_database.named_replica : k => v.name }
+  value = merge(
+    { for k, v in azurerm_mssql_database.named_replica : k => v.name },
+    { for k, v in azurerm_mssql_database.named_replica_unmanaged : k => v.name }
+  )
 }

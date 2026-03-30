@@ -28,9 +28,10 @@ locals {
       zone_redundant       = db.zone_redundant
       storage_account_type = db.storage_account_type
 
-      named_replica                    = db.named_replica
-      named_replica_read_replica_count = db.named_replica_read_replica_count
-      named_replica_sku                = db.named_replica_sku != null ? db.named_replica_sku : db.sku_name
+      named_replica                         = db.named_replica
+      named_replica_ignore_capacity_changes = db.named_replica_ignore_capacity_changes
+      named_replica_read_replica_count      = db.named_replica_read_replica_count
+      named_replica_sku                     = db.named_replica_sku != null ? db.named_replica_sku : db.sku_name
 
       custom_tags = db.custom_tags
 
@@ -68,12 +69,23 @@ locals {
   }
 
   hyperscale_named_replicas_map = merge([
-    for db_suffix, db in local.databases_map : db.is_hyperscale && db.named_replica ? {
+    for db_suffix, db in local.databases_map : db.is_hyperscale && db.named_replica && !db.named_replica_ignore_capacity_changes ? {
       "${azurecaf_name.self_database[db_suffix].result}nr01" = {
         database_id                      = azurerm_mssql_database.self[db_suffix].id
         named_replica_sku                = db.named_replica_sku
         named_replica_read_replica_count = db.named_replica_read_replica_count
         db_usage                         = contains(keys(db.custom_tags), "DB_USAGE") ? "${db.custom_tags["DB_USAGE"]}_NAME_REPLICA" : "NAME_REPLICA"
+      }
+    } : {}
+  ]...)
+
+  hyperscale_named_replicas_unmanaged_map = merge([
+    for db_suffix, db in local.databases_map : db.is_hyperscale && db.named_replica_ignore_capacity_changes ? {
+      "${azurecaf_name.self_database[db_suffix].result}nr01" = {
+        database_id = azurerm_mssql_database.self[db_suffix].id
+        named_replica_sku                = db.named_replica_sku
+        named_replica_read_replica_count = db.named_replica_read_replica_count
+        db_usage    = contains(keys(db.custom_tags), "DB_USAGE") ? "${db.custom_tags["DB_USAGE"]}_NAME_REPLICA" : "NAME_REPLICA"
       }
     } : {}
   ]...)
@@ -150,12 +162,12 @@ resource "azurerm_mssql_database" "named_replica" {
 
   for_each = local.hyperscale_named_replicas_map
 
-  name                         = each.key
-  server_id                    = azurerm_mssql_server.primary.id
-  create_mode                  = "Secondary"
-  creation_source_database_id  = each.value.database_id
-  sku_name                     = each.value.named_replica_sku
-  read_replica_count           = each.value.named_replica_read_replica_count
+  name                        = each.key
+  server_id                   = azurerm_mssql_server.primary.id
+  create_mode                 = "Secondary"
+  creation_source_database_id = each.value.database_id
+  sku_name                    = each.value.named_replica_sku
+  read_replica_count          = each.value.named_replica_read_replica_count
 
   # In this provider, Hyperscale named replicas are created with create_mode = "Secondary".
   tags = {
@@ -168,5 +180,31 @@ resource "azurerm_mssql_database" "named_replica" {
 
   lifecycle {
     prevent_destroy = true
+  }
+}
+
+resource "azurerm_mssql_database" "named_replica_unmanaged" {
+
+  for_each = local.hyperscale_named_replicas_unmanaged_map
+
+  name                        = each.key
+  server_id                   = azurerm_mssql_server.primary.id
+  create_mode                 = "Secondary"
+  creation_source_database_id = each.value.database_id
+  sku_name                    = each.value.named_replica_sku
+  read_replica_count          = each.value.named_replica_read_replica_count
+
+  # In this provider, Hyperscale named replicas are created with create_mode = "Secondary".
+  tags = {
+    for n, v in merge(
+      local.tags_main,
+      { "description" = "Named replica of ${each.key}" },
+      { "DB_USAGE" = each.value.db_usage }
+    ) : n => v if v != ""
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [sku_name, read_replica_count]
   }
 }

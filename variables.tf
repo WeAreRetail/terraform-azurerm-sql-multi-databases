@@ -200,9 +200,10 @@ variable "databases" {
     auto_pause_delay_in_minutes = optional(number)
     storage_account_type        = optional(string, "Geo")
 
-    named_replica                    = optional(bool, false) # (Optional) Create a Hyperscale named replica for this database. Defaults to false.
-    named_replica_read_replica_count = optional(number, 0) # (Optional) Number of read replicas for the named replica. Defaults to 0.
-    named_replica_sku                = optional(string) # (Optional) SKU name for named replicas. If not provided, defaults to sku_name.
+    named_replica                         = optional(bool, false) # (Optional) Create a Hyperscale named replica for this database.
+    named_replica_ignore_capacity_changes = optional(bool, false) # (Optional) Create a Hyperscale named replica while ignoring sku/read_replica_count changes.
+    named_replica_read_replica_count      = optional(number, 0)   # (Optional) Number of read replicas for the named replica.
+    named_replica_sku                     = optional(string)      # (Optional) SKU name for named replicas.
 
     custom_tags = map(string)
 
