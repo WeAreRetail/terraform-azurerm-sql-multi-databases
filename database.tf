@@ -80,7 +80,7 @@ locals {
   ]...)
 
   hyperscale_named_replicas_unmanaged_map = merge([
-    for db_suffix, db in local.databases_map : db.is_hyperscale && db.named_replica_ignore_capacity_changes ? {
+    for db_suffix, db in local.databases_map : db.is_hyperscale && db.named_replica && db.named_replica_ignore_capacity_changes ? {
       "${azurecaf_name.self_database[db_suffix].result}nr01" = {
         database_id = azurerm_mssql_database.self[db_suffix].id
         named_replica_sku                = db.named_replica_sku
