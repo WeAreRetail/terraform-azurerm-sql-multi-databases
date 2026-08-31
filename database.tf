@@ -155,6 +155,9 @@ resource "azurerm_mssql_database" "self" {
 
   lifecycle {
     prevent_destroy = true
+    # AzureRM v5 treats removing an enabled enclave as a database replacement;
+    # preserve the existing Azure enclave setting to prevent accidental data loss.
+    ignore_changes  = [enclave_type]
   }
 }
 
